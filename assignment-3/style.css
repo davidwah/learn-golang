@@ -1,0 +1,16 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+
+#status {
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+
+#water-value,
+#wind-value,
+#water-status,
+#wind-status {
+    font-weight: bold;
+}
