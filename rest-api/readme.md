@@ -22,7 +22,7 @@
 }
 ```
 * Create Order (response):
-```
+```json
 {
     "id": 1,
     "orderedAt": "2021-10-06T16:53:27.675931+07:00",
@@ -42,7 +42,7 @@
 }
 ```
 * Get Orders (response):
-```
+```json
 [
     {
         "id": 1,
@@ -81,7 +81,7 @@
 ]
 ```
 * Update order (request):
-```
+```json
 {
     "orderedAt": "2021-10-06T16:53:27.675931+07:00",
     "customerName": "Test update",
@@ -100,7 +100,7 @@
 }
 ```
 * Update order (response):
-```
+```json
 {
     "id": 2,
     "orderedAt": "2021-10-06T16:53:27.675931+07:00",
@@ -120,6 +120,6 @@
 }
 ```
 * Delete Order (response):
-```
+```json
 Success delete
 ```
