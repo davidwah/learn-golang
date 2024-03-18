@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"rest-api/models"
 )
 
 const (
@@ -15,25 +14,18 @@ const (
 	dbname   = "db-rest-api"
 )
 
-var (
-	db  *gorm.DB
-	err error
-)
+func StartDb() (*gorm.DB, error) {
 
-func StartDB() {
 	config := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-	db, err = gorm.Open(postgres.Open(config), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(config), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	err := db.AutoMigrate(models.Order{}, models.OrderItem{})
-	if err != nil {
-		return
-	}
+	return db, nil
 
-}
-
-func GetDB() *gorm.DB {
-	return db
+	//err := db.AutoMigrate(models.Order{}, models.Item{})
+	//if err != nil {
+	//	return
+	//}
 }
