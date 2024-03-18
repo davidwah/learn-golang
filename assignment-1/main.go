@@ -14,21 +14,19 @@ type Teman struct {
 }
 
 func main() {
-	// input dari terminal
-	input := os.Args
-	if len(input) < 2 {
+
+	args := os.Args
+	if len(args) < 2 {
 		fmt.Println("Input tidak sesuai.")
 		return
 	}
-	
-	// ubah input jadi integer
-	absen, err := strconv.Atoi(input[1])
+
+	absen, err := strconv.Atoi(args[1])
 	if err != nil {
 		fmt.Println("Input tidak valid.")
 		return
 	}
 
-	// data teman
 	data := []Teman{
 		{
 			Nama:      "Agus",
@@ -56,7 +54,6 @@ func main() {
 		},
 	}
 
-	// print data teman sesuai dengan input
 	if absen > 0 && absen <= len(data) {
 		fmt.Println("Data teman dengan absen no:", absen)
 		fmt.Println("--------")
