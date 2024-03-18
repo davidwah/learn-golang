@@ -4,61 +4,85 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
-	"rest-api/models"
-	_, "rest-api/handler"
+	_models "rest-api/models"
+	"strconv"
 )
 
-// createOrder
-func CreateOrder(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var order models.Order
-		if err := c.BindJSON(&order); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		db.Create(&order)
-		c.JSON(http.StatusCreated, order)
-	}
+type OrderHandler struct {
+	db *gorm.DB
 }
 
-// getOrders
-func GetOrders(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var orders []models.Order
-		db.Find(&orders)
-		c.JSON(http.StatusOK, orders)
-	}
+func NewOrderHandler(db *gorm.DB) *OrderHandler {
+	return &OrderHandler{db: db}
 }
 
-// updateOrder
-func UpdateOrder(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		orderID := c.Param("orderId")
-		var order models.Order
-		if err := db.Where("id = ?", orderID).First(&order).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
-			return
-		}
-		var updatedOrder models.Order
-		if err := c.BindJSON(&updatedOrder); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		db.Model(&order).Updates(updatedOrder)
-		c.JSON(http.StatusOK, order)
+// fungsi CreateOrder
+func (c *OrderHandler) CreateOrder(ctx *gin.Context) {
+	var order _models.Order
+	if err := ctx.BindJSON(&order); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	// Save order and order items
+	if err := c.db.Create(&order).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, order)
 }
 
-// DeleteOrder
-func DeleteOrder(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		orderID := c.Param("orderId")
-		var order models.Order
-		if err := db.Where("id = ?", orderID).First(&order).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
-			return
-		}
-		db.Delete(&order)
-		c.JSON(http.StatusOK, gin.H{"message": "Success delete"})
+// fungsi GetOrders
+func (c *OrderHandler) GetOrders(ctx *gin.Context) {
+	var orders []_models.Order
+	if err := c.db.Preload("Items").Find(&orders).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
+	ctx.JSON(http.StatusOK, orders)
+}
+
+// fungsi UpdateOrder
+func (c *OrderHandler) UpdateOrder(ctx *gin.Context) {
+	id := ctx.Param("orderId")
+	var order _models.Order
+	if err := ctx.BindJSON(&order); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Update order and items
+	if err := c.db.Model(&_models.Order{ID: toUint(id)}).Updates(&order).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Fetch updated order with items
+	if err := c.db.Preload("Items").First(&order, "id = ?", id).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, order)
+}
+
+// fungsi DeleteOrder
+func (c *OrderHandler) DeleteOrder(ctx *gin.Context) {
+	id := ctx.Param("orderId")
+	if err := c.db.Delete(&_models.Order{}, id).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Success delete"})
+}
+
+func toUint(str string) uint {
+	id, err := strconv.Atoi(str)
+	if err != nil {
+		panic(err)
+	}
+	return uint(id)
 }
